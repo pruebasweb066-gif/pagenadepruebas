@@ -1,4 +1,5 @@
-const CONTRACT_ADDRESS = "0xb38B8262e9d1566dd09dd03b646560Fe24715bF3"; // tu contrato real
+// 🔹 Cambia esta dirección por la de tu contrato TokenX desplegado
+const CONTRACT_ADDRESS = "0xb38B8262e9d1566dd09dd03b646560Fe24715bF3"; // ← tu dirección real
 const ABI = [
   "function pendingRewards(address user) view returns (uint256)",
   "function claim()"
@@ -13,7 +14,7 @@ const walletSpan = document.getElementById("wallet");
 const pendingSpan = document.getElementById("pending");
 const claimBtn = document.getElementById("claimButton");
 
-// Función para inicializar provider y signer
+// Inicializar wallet
 async function initWallet() {
   if (!window.ethereum) return;
 
@@ -23,8 +24,7 @@ async function initWallet() {
   try {
     const accounts = await provider.listAccounts();
     if (accounts.length > 0) {
-      const walletAddress = accounts[0];
-      walletSpan.textContent = walletAddress;
+      walletSpan.textContent = accounts[0];
       contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
       await updatePending();
       setInterval(updatePending, 5000);
@@ -46,7 +46,7 @@ async function initWallet() {
   });
 }
 
-// Conectar wallet manualmente con botón
+// Conectar wallet manualmente
 connectWalletBtn.onclick = async () => {
   if (!window.ethereum) {
     alert("Necesitas MetaMask o Trust Wallet");
