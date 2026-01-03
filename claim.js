@@ -1,7 +1,5 @@
-// 📌 Cambia esta dirección por tu contrato TokenX desplegado
-const CONTRACT_ADDRESS = "0xb38B8262e9d1566dd09dd03b646560Fe24715bF3";
+const CONTRACT_ADDRESS = "0xb38B8262e9d1566dd09dd03b646560Fe24715bF3"; // PON TU DIRECCIÓN REAL
 
-// ABI mínimo del contrato TokenX
 const ABI = [
   "function pendingRewards(address user) view returns (uint256)",
   "function claim()"
@@ -16,7 +14,6 @@ const walletSpan = document.getElementById("wallet");
 const pendingSpan = document.getElementById("pending");
 const claimBtn = document.getElementById("claimButton");
 
-// Conectar wallet (MetaMask o Trust Wallet)
 connectWalletBtn.onclick = async () => {
   try {
     if (!window.ethereum) {
@@ -24,23 +21,17 @@ connectWalletBtn.onclick = async () => {
       return;
     }
 
-    // Solicitar permisos
     await window.ethereum.request({ method: "eth_requestAccounts" });
 
-    // 🔹 Usar Web3Provider para compatibilidad total
     provider = new ethers.providers.Web3Provider(window.ethereum);
     signer = provider.getSigner();
 
     const walletAddress = await signer.getAddress();
     walletSpan.textContent = walletAddress;
 
-    // Crear contrato
     contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
 
-    // Mostrar tokens pendientes
     await updatePending();
-
-    // Actualizar cada 5 segundos
     setInterval(updatePending, 5000);
 
   } catch (err) {
@@ -49,10 +40,8 @@ connectWalletBtn.onclick = async () => {
   }
 };
 
-// Función para actualizar tokens pendientes
 async function updatePending() {
   if (!contract || !signer) return;
-
   try {
     const walletAddress = await signer.getAddress();
     const pending = await contract.pendingRewards(walletAddress);
@@ -63,16 +52,14 @@ async function updatePending() {
   }
 }
 
-// Reclamar tokens
 claimBtn.onclick = async () => {
   if (!contract) {
     alert("Conecta tu wallet primero");
     return;
   }
-
   try {
     const tx = await contract.claim();
-    await tx.wait(); // Esperar confirmación
+    await tx.wait();
     alert("Tokens reclamados correctamente!");
     await updatePending();
   } catch (err) {
