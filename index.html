@@ -4,22 +4,24 @@
   <meta charset="UTF-8">
   <title>TokenX - Reclama tus tokens</title>
   <style>
-    body { font-family: Arial; text-align: center; padding: 40px; background: #f4f4f4; }
-    button { padding: 10px 20px; margin: 10px; cursor: pointer; font-size: 16px; }
+    body { font-family: Arial, sans-serif; text-align: center; padding: 40px; background: #f4f4f4; }
+    button { padding: 10px 20px; font-size: 16px; margin: 10px; cursor: pointer; }
+    #info { margin-top: 20px; font-size: 18px; }
   </style>
 </head>
 <body>
   <h1>TokenX Dashboard</h1>
 
   <button id="connectWallet">Conectar Wallet</button>
-  <p>Wallet: <span id="wallet">No conectada</span></p>
-  <p>Tokens pendientes: <span id="pending">0</span></p>
+  <div id="info">
+    <p>Wallet: <span id="wallet">No conectada</span></p>
+    <p>Tokens pendientes: <span id="pending">0</span></p>
+  </div>
 
   <button id="claimButton">Reclamar Tokens</button>
 
-  <!-- Primero Ethers.js, luego claim.js -->
+  <!-- Carga primero Ethers.js y luego claim.js -->
   <script src="https://cdn.jsdelivr.net/npm/ethers/dist/ethers.min.js" defer></script>
   <script src="claim.js" defer></script>
 </body>
 </html>
-
