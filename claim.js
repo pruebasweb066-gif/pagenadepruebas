@@ -2,29 +2,40 @@ let provider;
 let signer;
 let contract;
 
-const CONTRACT_ADDRESS = "DIRECCION_DE_TU_CONTRATO";
+const CONTRACT_ADDRESS = "0xb38B8262e9d1566dd09dd03b646560Fe24715bF3";
 
 const ABI = [
   "function claim() external",
   "function pendingRewards(address user) view returns (uint256)"
 ];
 
+// Esperar a que el DOM cargue
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("connectBtn").addEventListener("click", connectWallet);
+  document.getElementById("claimBtn").addEventListener("click", claimTokens);
+});
+
 async function connectWallet() {
   if (!window.ethereum) {
-    alert("Instala MetaMask");
+    alert("❌ MetaMask no está instalada");
     return;
   }
 
-  provider = new ethers.BrowserProvider(window.ethereum);
-  signer = await provider.getSigner();
+  try {
+    provider = new ethers.BrowserProvider(window.ethereum);
+    signer = await provider.getSigner();
 
-  const address = await signer.getAddress();
-  document.getElementById("wallet").innerText =
-    "Wallet: " + address.slice(0, 6) + "..." + address.slice(-4);
+    const address = await signer.getAddress();
+    document.getElementById("wallet").innerText =
+      "Wallet: " + address.slice(0, 6) + "..." + address.slice(-4);
 
-  contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+    contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
 
-  updateRewards();
+    updateRewards();
+  } catch (err) {
+    console.error(err);
+    alert("Error al conectar la wallet");
+  }
 }
 
 async function updateRewards() {
@@ -45,10 +56,8 @@ async function claimTokens() {
   }
 
   try {
+    document.getElementById("rewards").innerText = "⏳ Confirmando...";
     const tx = await contract.claim();
-    document.getElementById("rewards").innerText =
-      "⏳ Confirmando transacción...";
-
     await tx.wait();
 
     alert("✅ Tokens reclamados");
