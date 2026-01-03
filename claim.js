@@ -1,5 +1,5 @@
 // 🔹 Cambia esta dirección por la de tu contrato TokenX desplegado
-const CONTRACT_ADDRESS = "0xb38B8262e9d1566dd09dd03b646560Fe24715bF3"; // ← tu dirección real
+const CONTRACT_ADDRESS = "0xTU_CONTRATO_TOKENX"; // ← tu dirección real
 const ABI = [
   "function pendingRewards(address user) view returns (uint256)",
   "function claim()"
