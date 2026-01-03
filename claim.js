@@ -1,5 +1,5 @@
 // 📌 Cambia esta dirección por tu contrato TokenX desplegado
-const CONTRACT_ADDRESS = "0xTU_CONTRATO_TOKENX";
+const CONTRACT_ADDRESS = "0xb38B8262e9d1566dd09dd03b646560Fe24715bF3";
 
 // ABI mínimo del contrato TokenX
 const ABI = [
