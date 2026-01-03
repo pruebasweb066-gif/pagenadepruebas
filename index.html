@@ -1,14 +1,17 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>TokenX Claim</title>
+
+  <!-- ethers v6 -->
   <script src="https://cdn.jsdelivr.net/npm/ethers@6.10.0/dist/ethers.umd.min.js"></script>
+
   <style>
     body {
-      font-family: Arial, sans-serif;
       background: #111;
       color: #fff;
+      font-family: Arial, sans-serif;
       text-align: center;
       padding-top: 50px;
     }
@@ -22,25 +25,26 @@
       background: #1c1c1c;
       padding: 20px;
       border-radius: 8px;
-      width: 350px;
+      width: 360px;
       margin: auto;
     }
   </style>
 </head>
+
 <body>
 
   <div class="box">
     <h2>TokenX Rewards</h2>
 
-    <button onclick="connectWallet()">🔗 Conectar Wallet</button>
+    <button id="connectBtn">🔗 Conectar Wallet</button>
 
     <p id="wallet">Wallet: -</p>
     <p id="rewards">Pendiente: 0 XTK</p>
 
-    <button onclick="claimTokens()">💰 Claim Tokens</button>
+    <button id="claimBtn">💰 Claim Tokens</button>
   </div>
 
-  <script src="app.js"></script>
+  <!-- IMPORTANTE: defer -->
+  <script src="app.js" defer></script>
 </body>
 </html>
-
