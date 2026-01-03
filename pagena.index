@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>TokenX Claim</title>
+</head>
+<body>
+  <h1>TokenX - Reclama tus tokens</h1>
+
+  <button id="connectWallet">Conectar Wallet</button>
+  <p>Wallet: <span id="wallet">No conectada</span></p>
+  <p>Tokens pendientes: <span id="pending">0</span></p>
+  <button id="claimButton">Reclamar Tokens</button>
+
+  <script src="https://cdn.jsdelivr.net/npm/ethers/dist/ethers.min.js"></script>
+  <script src="claim.js"></script>
+</body>
+</html>
