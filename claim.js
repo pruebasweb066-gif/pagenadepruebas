@@ -1,5 +1,5 @@
 // 🔹 Cambia esta dirección por la de tu contrato TokenX desplegado
-const CONTRACT_ADDRESS = "0xTU_CONTRATO_TOKENX"; // ← tu dirección real
+const CONTRACT_ADDRESS = "0xb38B8262e9d1566dd09dd03b646560Fe24715bF3"; // ← tu dirección real
 const ABI = [
   "function pendingRewards(address user) view returns (uint256)",
   "function claim()"
@@ -14,57 +14,51 @@ const walletSpan = document.getElementById("wallet");
 const pendingSpan = document.getElementById("pending");
 const claimBtn = document.getElementById("claimButton");
 
-// Inicializar wallet
-async function initWallet() {
-  if (!window.ethereum) return;
-
-  provider = new ethers.providers.Web3Provider(window.ethereum);
-  signer = provider.getSigner();
-
+// Inicializar WalletConnect + ethers.js
+async function connectWallet() {
   try {
-    const accounts = await provider.listAccounts();
-    if (accounts.length > 0) {
-      walletSpan.textContent = accounts[0];
-      contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
-      await updatePending();
-      setInterval(updatePending, 5000);
-    }
-  } catch (err) {
-    console.error("Error al inicializar wallet:", err);
-  }
+    // Crear provider WalletConnect
+    const wcProvider = new WalletConnectProvider.default({
+      infuraId: "TU_INFURA_ID_AQUI" // ⚡ Puedes usar Infura o RPC de tu red
+    });
 
-  // Escuchar cambios de cuenta
-  window.ethereum.on("accountsChanged", async (accounts) => {
-    if (accounts.length === 0) {
-      walletSpan.textContent = "No conectada";
-    } else {
-      walletSpan.textContent = accounts[0];
-      signer = provider.getSigner();
-      contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
-      await updatePending();
-    }
-  });
-}
+    // Solicitar conexión
+    await wcProvider.enable();
 
-// Conectar wallet manualmente
-connectWalletBtn.onclick = async () => {
-  if (!window.ethereum) {
-    alert("Necesitas MetaMask o Trust Wallet");
-    return;
-  }
+    // Crear provider ethers
+    provider = new ethers.providers.Web3Provider(wcProvider);
+    signer = provider.getSigner();
+    contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
 
-  try {
-    await window.ethereum.request({ method: "eth_requestAccounts" });
-    await initWallet();
+    const walletAddress = await signer.getAddress();
+    walletSpan.textContent = walletAddress;
+
+    // Actualizar tokens pendientes cada 5 segundos
+    await updatePending();
+    setInterval(updatePending, 5000);
+
+    // Escuchar cambios de cuentas
+    wcProvider.on("accountsChanged", async (accounts) => {
+      if (accounts.length === 0) {
+        walletSpan.textContent = "No conectada";
+      } else {
+        walletSpan.textContent = accounts[0];
+        signer = provider.getSigner();
+        contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+        await updatePending();
+      }
+    });
+
   } catch (err) {
     console.error("Error al conectar wallet:", err);
     alert("Error al conectar wallet: " + err.message);
   }
-};
+}
 
-// Actualizar tokens pendientes
+// Mostrar tokens pendientes
 async function updatePending() {
   if (!contract || !signer) return;
+
   try {
     const walletAddress = await signer.getAddress();
     const pending = await contract.pendingRewards(walletAddress);
@@ -93,5 +87,5 @@ claimBtn.onclick = async () => {
   }
 };
 
-// Inicializar al cargar la página
-window.addEventListener("load", initWallet);
+// Eventos
+connectWalletBtn.onclick = connectWallet;
