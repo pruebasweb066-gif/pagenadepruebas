@@ -1,5 +1,5 @@
 // 📌 Cambia esta dirección por tu contrato TokenX desplegado
-const CONTRACT_ADDRESS = "0xb38B8262e9d1566dd09dd03b646560Fe24715bF3";
+const CONTRACT_ADDRESS = "0xTU_CONTRATO_TOKENX";
 
 // ABI mínimo del contrato TokenX
 const ABI = [
@@ -27,9 +27,9 @@ connectWalletBtn.onclick = async () => {
     // Solicitar permisos
     await window.ethereum.request({ method: "eth_requestAccounts" });
 
-    // Crear provider y signer
-    provider = new ethers.BrowserProvider(window.ethereum);
-    signer = await provider.getSigner();
+    // 🔹 Usar Web3Provider para compatibilidad total
+    provider = new ethers.providers.Web3Provider(window.ethereum);
+    signer = provider.getSigner();
 
     const walletAddress = await signer.getAddress();
     walletSpan.textContent = walletAddress;
@@ -38,7 +38,7 @@ connectWalletBtn.onclick = async () => {
     contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
 
     // Mostrar tokens pendientes
-    updatePending();
+    await updatePending();
 
     // Actualizar cada 5 segundos
     setInterval(updatePending, 5000);
@@ -56,7 +56,7 @@ async function updatePending() {
   try {
     const walletAddress = await signer.getAddress();
     const pending = await contract.pendingRewards(walletAddress);
-    pendingSpan.textContent = ethers.formatUnits(pending, 18);
+    pendingSpan.textContent = ethers.utils.formatUnits(pending, 18);
   } catch (err) {
     console.error("Error al obtener tokens pendientes:", err);
     pendingSpan.textContent = "0";
@@ -74,10 +74,9 @@ claimBtn.onclick = async () => {
     const tx = await contract.claim();
     await tx.wait(); // Esperar confirmación
     alert("Tokens reclamados correctamente!");
-    updatePending();
+    await updatePending();
   } catch (err) {
     console.error("Error al reclamar tokens:", err);
     alert("Error al reclamar tokens: " + err.message);
   }
 };
-
