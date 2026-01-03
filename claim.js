@@ -1,111 +1,61 @@
-// 🔹 Cambia esta dirección por la de tu contrato TokenX desplegado
-const CONTRACT_ADDRESS = "0xTU_CONTRATO_TOKENX"; // ← tu dirección real
-const ABI = [
-  "function pendingRewards(address user) view returns (uint256)",
-  "function claim()"
-];
-
 let provider;
 let signer;
 let contract;
-let web3Modal;
-let connection;
 
-// Elementos de la página
-const connectWalletBtn = document.getElementById("connectWallet");
-const walletSpan = document.getElementById("wallet");
-const pendingSpan = document.getElementById("pending");
-const claimBtn = document.getElementById("claimButton");
+const CONTRACT_ADDRESS = "DIRECCION_DE_TU_CONTRATO";
 
-// Inicializar Web3Modal
-function initWeb3Modal() {
-  const providerOptions = {
-    walletconnect: {
-      package: WalletConnectProvider.default,
-      options: {
-        infuraId: "TU_INFURA_ID_AQUI" // ⚡ Tu Infura ID o RPC
-      }
-    }
-  };
+const ABI = [
+  "function claim() external",
+  "function pendingRewards(address user) view returns (uint256)"
+];
 
-  web3Modal = new Web3Modal.default({
-    cacheProvider: true,
-    providerOptions
-  });
-}
-
-// Conectar wallet usando Web3Modal
 async function connectWallet() {
-  try {
-    connection = await web3Modal.connect();
-    provider = new ethers.providers.Web3Provider(connection);
-    signer = provider.getSigner();
-    contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
-
-    const walletAddress = await signer.getAddress();
-    walletSpan.textContent = walletAddress;
-
-    // Actualizar tokens cada 5s
-    await updatePending();
-    setInterval(updatePending, 5000);
-
-    // Escuchar cambios de cuentas
-    connection.on("accountsChanged", async (accounts) => {
-      if (accounts.length === 0) {
-        walletSpan.textContent = "No conectada";
-      } else {
-        walletSpan.textContent = accounts[0];
-        signer = provider.getSigner();
-        contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
-        await updatePending();
-      }
-    });
-
-    connection.on("disconnect", () => {
-      walletSpan.textContent = "No conectada";
-      pendingSpan.textContent = "0";
-    });
-
-  } catch (err) {
-    console.error("Error al conectar wallet:", err);
-    alert("Error al conectar wallet: " + err.message);
+  if (!window.ethereum) {
+    alert("Instala MetaMask");
+    return;
   }
+
+  provider = new ethers.BrowserProvider(window.ethereum);
+  signer = await provider.getSigner();
+
+  const address = await signer.getAddress();
+  document.getElementById("wallet").innerText =
+    "Wallet: " + address.slice(0, 6) + "..." + address.slice(-4);
+
+  contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+
+  updateRewards();
 }
 
-// Mostrar tokens pendientes
-async function updatePending() {
+async function updateRewards() {
   if (!contract || !signer) return;
 
-  try {
-    const walletAddress = await signer.getAddress();
-    const pending = await contract.pendingRewards(walletAddress);
-    pendingSpan.textContent = ethers.utils.formatUnits(pending, 18);
-  } catch (err) {
-    console.error("Error al obtener tokens pendientes:", err);
-    pendingSpan.textContent = "0";
-  }
+  const address = await signer.getAddress();
+  const rewards = await contract.pendingRewards(address);
+
+  const formatted = ethers.formatUnits(rewards, 18);
+  document.getElementById("rewards").innerText =
+    "Pendiente: " + Number(formatted).toFixed(4) + " XTK";
 }
 
-// Reclamar tokens
-claimBtn.onclick = async () => {
+async function claimTokens() {
   if (!contract) {
-    alert("Conecta tu wallet primero");
+    alert("Conecta la wallet primero");
     return;
   }
 
   try {
     const tx = await contract.claim();
+    document.getElementById("rewards").innerText =
+      "⏳ Confirmando transacción...";
+
     await tx.wait();
-    alert("Tokens reclamados correctamente!");
-    await updatePending();
+
+    alert("✅ Tokens reclamados");
+    updateRewards();
   } catch (err) {
-    console.error("Error al reclamar tokens:", err);
-    alert("Error al reclamar tokens: " + err.message);
+    console.error(err);
+    alert("❌ Error al reclamar tokens");
   }
-};
+}
 
-// Eventos
-connectWalletBtn.onclick = connectWallet;
-
-// Inicializar Web3Modal al cargar
-window.addEventListener("load", initWeb3Modal);
