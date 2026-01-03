@@ -1,5 +1,5 @@
 // 🔹 Cambia esta dirección por la de tu contrato TokenX desplegado
-const CONTRACT_ADDRESS = "0xb38B8262e9d1566dd09dd03b646560Fe24715bF3"; // ← tu dirección real
+const CONTRACT_ADDRESS = "0xTU_CONTRATO_TOKENX"; // ← tu dirección real
 const ABI = [
   "function pendingRewards(address user) view returns (uint256)",
   "function claim()"
@@ -8,37 +8,49 @@ const ABI = [
 let provider;
 let signer;
 let contract;
+let web3Modal;
+let connection;
 
+// Elementos de la página
 const connectWalletBtn = document.getElementById("connectWallet");
 const walletSpan = document.getElementById("wallet");
 const pendingSpan = document.getElementById("pending");
 const claimBtn = document.getElementById("claimButton");
 
-// Inicializar WalletConnect + ethers.js
+// Inicializar Web3Modal
+function initWeb3Modal() {
+  const providerOptions = {
+    walletconnect: {
+      package: WalletConnectProvider.default,
+      options: {
+        infuraId: "TU_INFURA_ID_AQUI" // ⚡ Tu Infura ID o RPC
+      }
+    }
+  };
+
+  web3Modal = new Web3Modal.default({
+    cacheProvider: true,
+    providerOptions
+  });
+}
+
+// Conectar wallet usando Web3Modal
 async function connectWallet() {
   try {
-    // Crear provider WalletConnect
-    const wcProvider = new WalletConnectProvider.default({
-      infuraId: "TU_INFURA_ID_AQUI" // ⚡ Puedes usar Infura o RPC de tu red
-    });
-
-    // Solicitar conexión
-    await wcProvider.enable();
-
-    // Crear provider ethers
-    provider = new ethers.providers.Web3Provider(wcProvider);
+    connection = await web3Modal.connect();
+    provider = new ethers.providers.Web3Provider(connection);
     signer = provider.getSigner();
     contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
 
     const walletAddress = await signer.getAddress();
     walletSpan.textContent = walletAddress;
 
-    // Actualizar tokens pendientes cada 5 segundos
+    // Actualizar tokens cada 5s
     await updatePending();
     setInterval(updatePending, 5000);
 
     // Escuchar cambios de cuentas
-    wcProvider.on("accountsChanged", async (accounts) => {
+    connection.on("accountsChanged", async (accounts) => {
       if (accounts.length === 0) {
         walletSpan.textContent = "No conectada";
       } else {
@@ -47,6 +59,11 @@ async function connectWallet() {
         contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
         await updatePending();
       }
+    });
+
+    connection.on("disconnect", () => {
+      walletSpan.textContent = "No conectada";
+      pendingSpan.textContent = "0";
     });
 
   } catch (err) {
@@ -89,3 +106,6 @@ claimBtn.onclick = async () => {
 
 // Eventos
 connectWalletBtn.onclick = connectWallet;
+
+// Inicializar Web3Modal al cargar
+window.addEventListener("load", initWeb3Modal);
