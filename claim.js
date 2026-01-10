@@ -1,70 +1,60 @@
-let provider;
-let signer;
-let contract;
+const btn = document.getElementById("btn");
+const status = document.getElementById("status");
 
-const CONTRACT_ADDRESS = "0xb38B8262e9d1566dd09dd03b646560Fe24715bF3";
-
-const ABI = [
-  "function claim() external",
-  "function pendingRewards(address user) view returns (uint256)"
-];
-
-// Esperar a que el DOM cargue
-document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("connectBtn").addEventListener("click", connectWallet);
-  document.getElementById("claimBtn").addEventListener("click", claimTokens);
-});
+let provider = null;
 
 async function connectWallet() {
-  if (!window.ethereum) {
-    alert("❌ MetaMask no está instalada");
-    return;
-  }
-
   try {
-    provider = new ethers.BrowserProvider(window.ethereum);
-    signer = await provider.getSigner();
+    provider = new WalletConnectProvider.default({
+      rpc: {
+        1: "https://rpc.ankr.com/eth",        // Ethereum Mainnet
+        5: "https://rpc.ankr.com/eth_goerli"  // Goerli Testnet
+      },
+      qrcode: true
+    });
 
+    // Mostrar QR y conectar
+    await provider.enable();
+
+    const web3Provider = new ethers.providers.Web3Provider(provider);
+    const signer = web3Provider.getSigner();
     const address = await signer.getAddress();
-    document.getElementById("wallet").innerText =
-      "Wallet: " + address.slice(0, 6) + "..." + address.slice(-4);
 
-    contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+    status.innerHTML = `Conectado: <br>${address}`;
+    btn.textContent = "Desconectar";
 
-    updateRewards();
-  } catch (err) {
-    console.error(err);
-    alert("Error al conectar la wallet");
+    // Escuchar desconexión
+    provider.on("disconnect", () => {
+      resetUI();
+    });
+
+    // Si el usuario cambia cuentas
+    provider.on("accountsChanged", (accounts) => {
+      if (accounts.length === 0) resetUI();
+      else status.innerHTML = `Conectado: <br>${accounts[0]}`;
+    });
+
+  } catch (error) {
+    console.error(error);
+    status.innerHTML = "No se pudo conectar.";
   }
 }
 
-async function updateRewards() {
-  if (!contract || !signer) return;
-
-  const address = await signer.getAddress();
-  const rewards = await contract.pendingRewards(address);
-
-  const formatted = ethers.formatUnits(rewards, 18);
-  document.getElementById("rewards").innerText =
-    "Pendiente: " + Number(formatted).toFixed(4) + " XTK";
-}
-
-async function claimTokens() {
-  if (!contract) {
-    alert("Conecta la wallet primero");
-    return;
-  }
-
-  try {
-    document.getElementById("rewards").innerText = "⏳ Confirmando...";
-    const tx = await contract.claim();
-    await tx.wait();
-
-    alert("✅ Tokens reclamados");
-    updateRewards();
-  } catch (err) {
-    console.error(err);
-    alert("❌ Error al reclamar tokens");
+async function disconnectWallet() {
+  if (provider) {
+    await provider.disconnect();
+    resetUI();
   }
 }
+
+function resetUI() {
+  provider = null;
+  status.innerHTML = "";
+  btn.textContent = "Conectar Wallet";
+}
+
+btn.addEventListener("click", () => {
+  if (!provider) connectWallet();
+  else disconnectWallet();
+});
 
