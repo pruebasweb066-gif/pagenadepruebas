@@ -1,27 +1,12 @@
 <!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
   <meta charset="utf-8" />
   <title>Connect Wallet (WalletConnect v1)</title>
-
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 24px;
-      background: #121212;
-      color: #fff;
-    }
-    button {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 16px;
-    }
-    #status {
-      margin-top: 16px;
-      word-break: break-all;
-    }
+    body { font-family: Arial, sans-serif; padding: 24px; background:#121212; color:#fff; }
+    button { padding:10px 20px;border:none;border-radius:8px;cursor:pointer;font-size:16px; }
+    #status { margin-top:16px; }
   </style>
 </head>
 <body>
@@ -34,8 +19,57 @@
 
   <!-- WalletConnect v1 Provider UMD -->
   <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider@1.8.0/dist/umd/index.min.js"></script>
+  <script>
+    const btn = document.getElementById("btn");
+    const status = document.getElementById("status");
 
-  <!-- Tu JS -->
-  <script src="wallet.js"></script>
+    let provider;
+
+    async function connectWallet() {
+      try {
+        // Crear provider con WalletConnect
+        provider = new WalletConnectProvider.default({
+          rpc: {
+            1: "https://rpc.ankr.com/eth", // Mainnet
+            5: "https://rpc.ankr.com/eth_goerli" // Goerli testnet
+          },
+        });
+
+        // Mostrar QR para WalletConnect
+        await provider.enable();
+
+        const web3Provider = new ethers.providers.Web3Provider(provider);
+        const signer = web3Provider.getSigner();
+        const address = await signer.getAddress();
+
+        status.innerHTML = "Conectado: " + address;
+        btn.textContent = "Desconectar";
+
+        provider.on("disconnect", () => {
+          status.innerHTML = "";
+          btn.textContent = "Conectar Wallet";
+          provider = null;
+        });
+
+      } catch (error) {
+        console.error(error);
+        status.innerHTML = "No se pudo conectar.";
+      }
+    }
+
+    async function disconnectWallet() {
+      if (provider) {
+        await provider.disconnect();
+        status.innerHTML = "";
+        provider = null;
+        btn.textContent = "Conectar Wallet";
+      }
+    }
+
+    btn.onclick = () => {
+      if (!provider) connectWallet();
+      else disconnectWallet();
+    };
+  </script>
 </body>
 </html>
