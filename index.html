@@ -1,50 +1,41 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>TokenX Claim</title>
-
-  <!-- ethers v6 -->
-  <script src="https://cdn.jsdelivr.net/npm/ethers@6.10.0/dist/ethers.umd.min.js"></script>
+  <meta charset="utf-8" />
+  <title>Connect Wallet (WalletConnect v1)</title>
 
   <style>
     body {
-      background: #111;
-      color: #fff;
       font-family: Arial, sans-serif;
-      text-align: center;
-      padding-top: 50px;
+      padding: 24px;
+      background: #121212;
+      color: #fff;
     }
     button {
-      padding: 12px 20px;
-      font-size: 16px;
-      cursor: pointer;
-      margin: 10px;
-    }
-    .box {
-      background: #1c1c1c;
-      padding: 20px;
+      padding: 10px 20px;
+      border: none;
       border-radius: 8px;
-      width: 360px;
-      margin: auto;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    #status {
+      margin-top: 16px;
+      word-break: break-all;
     }
   </style>
 </head>
-
 <body>
 
-  <div class="box">
-    <h2>TokenX Rewards</h2>
+  <button id="btn">Conectar Wallet</button>
+  <div id="status"></div>
 
-    <button id="connectBtn">🔗 Conectar Wallet</button>
+  <!-- Ethers UMD -->
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7/dist/ethers.umd.min.js"></script>
 
-    <p id="wallet">Wallet: -</p>
-    <p id="rewards">Pendiente: 0 XTK</p>
+  <!-- WalletConnect v1 Provider UMD -->
+  <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider@1.8.0/dist/umd/index.min.js"></script>
 
-    <button id="claimBtn">💰 Claim Tokens</button>
-  </div>
-
-  <!-- IMPORTANTE: defer -->
-  <script src="app.js" defer></script>
+  <!-- Tu JS -->
+  <script src="wallet.js"></script>
 </body>
 </html>
