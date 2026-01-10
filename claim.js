@@ -1,13 +1,18 @@
 const btn = document.getElementById("btn");
 const status = document.getElementById("status");
 
-let web3Modal;
-let provider;
-let signer;
+let web3Modal = null;
+let externalProvider = null;
+let provider = null;
+let signer = null;
 
+/**
+ * Configuración de proveedores
+ * Esto es lo que hace que aparezca el selector de wallets
+ */
 const providerOptions = {
   walletconnect: {
-    package: WalletConnectProvider.default,
+    package: window.WalletConnectProvider.default,
     options: {
       rpc: {
         1: "https://rpc.ankr.com/eth"
@@ -16,46 +21,75 @@ const providerOptions = {
   }
 };
 
+/**
+ * Inicializar Web3Modal cuando la página carga
+ */
 window.addEventListener("load", () => {
-  web3Modal = new Web3Modal.default({
+  web3Modal = new window.Web3Modal({
     cacheProvider: false,
     providerOptions
   });
 });
 
+/**
+ * Conectar wallet
+ */
 async function connectWallet() {
   try {
-    const instance = await web3Modal.connect();
+    // Abre el modal de selección
+    externalProvider = await web3Modal.connect();
 
-    provider = new ethers.providers.Web3Provider(instance);
+    // Envolver con ethers
+    provider = new ethers.providers.Web3Provider(externalProvider);
     signer = provider.getSigner();
 
     const address = await signer.getAddress();
+
     status.innerHTML = `Conectado:<br>${address}`;
     btn.textContent = "Desconectar";
 
-    instance.on("disconnect", resetUI);
+    // Escuchar desconexión
+    externalProvider.on("disconnect", resetUI);
+    externalProvider.on("accountsChanged", (accounts) => {
+      if (accounts.length === 0) resetUI();
+      else status.innerHTML = `Conectado:<br>${accounts[0]}`;
+    });
 
   } catch (err) {
     console.error(err);
+    status.innerHTML = "Conexión cancelada";
   }
 }
 
+/**
+ * Desconectar wallet
+ */
 async function disconnectWallet() {
-  if (provider?.provider?.disconnect) {
-    await provider.provider.disconnect();
+  try {
+    if (externalProvider?.disconnect) {
+      await externalProvider.disconnect();
+    }
+  } catch (e) {
+    // algunos wallets no soportan disconnect
   }
   resetUI();
 }
 
+/**
+ * Resetear UI
+ */
 function resetUI() {
+  externalProvider = null;
   provider = null;
   signer = null;
   status.innerHTML = "";
   btn.textContent = "Conectar Wallet";
 }
 
-btn.onclick = () => {
+/**
+ * Botón
+ */
+btn.addEventListener("click", () => {
   if (!provider) connectWallet();
   else disconnectWallet();
-};
+});
